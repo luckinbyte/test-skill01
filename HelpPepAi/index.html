@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>HelpPepAi - Protect Pep from Bees!</title>
+  <link rel="stylesheet" href="./public/styles.css">
+</head>
+<body>
+  <div id="game-container">
+    <canvas id="game-canvas"></canvas>
+
+    <!-- UI Overlay -->
+    <div id="ui-overlay">
+      <!-- Timer -->
+      <div id="timer">10</div>
+
+      <!-- Level indicator -->
+      <div id="level-indicator">Level 1</div>
+    </div>
+
+    <!-- Start UI -->
+    <div id="start-ui" class="game-ui">
+      <div class="ui-content">
+        <h1>HelpPepAi</h1>
+        <p>Draw lines to protect Pep from angry bees!</p>
+        <p class="hint">Survive for 10 seconds to win!</p>
+        <button id="start-btn">Start Game</button>
+      </div>
+    </div>
+
+    <!-- Win UI -->
+    <div id="win-ui" class="game-ui hidden">
+      <div class="ui-content">
+        <h2>You Win!</h2>
+        <p>Pep is safe!</p>
+        <button id="next-level-btn">Next Level</button>
+      </div>
+    </div>
+
+    <!-- Lose UI -->
+    <div id="lose-ui" class="game-ui hidden">
+      <div class="ui-content">
+        <h2>Game Over</h2>
+        <p>Pep got hurt!</p>
+        <button id="retry-btn">Try Again</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

@@ -4,3 +4,12 @@
 # OS files
 .DS_Store
 Thumbs.db
+
+# Original Cocos project (reference only)
+HelpDog/
+
+# Build outputs
+HelpDogAi/dist/
+HelpDogAi/node_modules/
+HelpPepAi/dist/
+HelpPepAi/node_modules/
