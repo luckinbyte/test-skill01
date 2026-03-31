@@ -43,10 +43,6 @@ export class Pep {
     this.hit = true;
   }
 
-  setStatic(isStatic: boolean) {
-    Matter.Body.setStatic(this.body, isStatic);
-  }
-
   update(_deltaTime: number) {
     // Pep physics is handled by Matter.js
   }

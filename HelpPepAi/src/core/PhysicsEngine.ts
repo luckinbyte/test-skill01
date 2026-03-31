@@ -1,6 +1,17 @@
 import Matter from 'matter-js';
 import { GameConfig } from './GameConfig';
 
+// Collision categories (like layers in Cocos)
+export const CollisionCategory = {
+  DEFAULT: 0x0001,
+  BEE: 0x0002,
+  LINE: 0x0004,
+  PEP: 0x0008
+};
+
+// Collision callback type
+export type CollisionCallback = (event: Matter.IEventCollision<Matter.Engine>) => void;
+
 export class PhysicsEngine {
   private engine: Matter.Engine;
   private world: Matter.World;
@@ -52,6 +63,16 @@ export class PhysicsEngine {
     Matter.World.add(this.world, bodies);
   }
 
+  // Register collision event listener
+  onCollision(callback: CollisionCallback) {
+    Matter.Events.on(this.engine, 'collisionStart', callback);
+  }
+
+  // Remove collision event listener
+  offCollision(callback: CollisionCallback) {
+    Matter.Events.off(this.engine, 'collisionStart', callback);
+  }
+
   // Create a line segment as a physics body
   createLineBody(
     x1: number, y1: number,
@@ -71,10 +92,11 @@ export class PhysicsEngine {
       friction: this.config.lineFriction,
       restitution: this.config.lineRestitution,
       density: this.config.lineDensity,
-      render: {
-        fillStyle: '#333333'
-      },
-      label: 'line'
+      label: 'line',
+      collisionFilter: {
+        category: CollisionCategory.LINE,
+        mask: CollisionCategory.DEFAULT | CollisionCategory.BEE | CollisionCategory.PEP
+      }
     });
 
     this.lineBodies.push(body);
@@ -92,7 +114,12 @@ export class PhysicsEngine {
       isStatic: true,
       friction: 0.8,
       restitution: 0.2,
-      ...options
+      ...options,
+      collisionFilter: {
+        category: CollisionCategory.DEFAULT,
+        mask: CollisionCategory.DEFAULT | CollisionCategory.BEE | CollisionCategory.LINE | CollisionCategory.PEP,
+        ...options.collisionFilter
+      }
     });
     this.addBody(body);
     return body;
@@ -108,8 +135,40 @@ export class PhysicsEngine {
       friction: 0.5,
       restitution: 0.3,
       density: 0.002,
-      ...options
+      ...options,
+      collisionFilter: {
+        category: CollisionCategory.DEFAULT,
+        mask: CollisionCategory.DEFAULT | CollisionCategory.LINE,
+        ...options.collisionFilter
+      }
     });
+    this.addBody(body);
+    return body;
+  }
+
+  // Create bee body with proper collision settings
+  createBeeBody(
+    x: number, y: number,
+    radius: number
+  ): Matter.Body {
+    const body = Matter.Bodies.circle(x, y, radius, {
+      label: 'bee',
+      friction: 0.1,
+      restitution: 0.5,
+      density: 0.001,
+      frictionAir: 0.05,
+      // Enable CCD (continuous collision detection) via high time scale
+      slop: 0.01,
+      collisionFilter: {
+        category: CollisionCategory.BEE,
+        // Bee collides with DEFAULT (terrain), LINE (drawn lines), PEP (target)
+        mask: CollisionCategory.DEFAULT | CollisionCategory.LINE | CollisionCategory.PEP
+      }
+    });
+
+    // Set gravity scale to 0 (bees fly)
+    Matter.Body.set(body, 'gravityScale', 0);
+
     this.addBody(body);
     return body;
   }

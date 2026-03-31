@@ -1,3 +1,4 @@
+import Matter from 'matter-js';
 import { PhysicsEngine } from '../core/PhysicsEngine';
 import { GameConfig } from '../core/GameConfig';
 import { Pep } from './Pep';
@@ -17,6 +18,50 @@ export class EntityManager {
   constructor(physics: PhysicsEngine, config: GameConfig) {
     this.physics = physics;
     this.config = config;
+
+    // Setup collision detection
+    this.setupCollisionHandlers();
+  }
+
+  private setupCollisionHandlers() {
+    Matter.Events.on(this.physics.getEngine(), 'collisionStart', (event) => {
+      const pairs = event.pairs;
+
+      for (const pair of pairs) {
+        const bodyA = pair.bodyA;
+        const bodyB = pair.bodyB;
+
+        // Check for bee-line collision
+        this.handleBeeLineCollision(bodyA, bodyB);
+
+        // Check for bee-pep collision
+        this.handleBeePepCollision(bodyA, bodyB);
+      }
+    });
+  }
+
+  private handleBeeLineCollision(bodyA: Matter.Body, bodyB: Matter.Body) {
+    // Check if one is bee and other is line
+    const beeBody = bodyA.label === 'bee' ? bodyA : (bodyB.label === 'bee' ? bodyB : null);
+    const lineBody = bodyA.label === 'line' ? bodyA : (bodyB.label === 'line' ? bodyB : null);
+
+    if (beeBody && lineBody) {
+      // Find the bee instance and trigger retreat
+      const bee = this.bees.find(b => b.getBody() === beeBody);
+      if (bee) {
+        bee.startRetreat();
+      }
+    }
+  }
+
+  private handleBeePepCollision(bodyA: Matter.Body, bodyB: Matter.Body) {
+    // Check if one is bee and other is pep
+    const beeBody = bodyA.label === 'bee' ? bodyA : (bodyB.label === 'bee' ? bodyB : null);
+    const pepBody = bodyA.label === 'pep' ? bodyA : (bodyB.label === 'pep' ? bodyB : null);
+
+    if (beeBody && pepBody && this.pep && !this.pep.isHit()) {
+      this.pep.onHit();
+    }
   }
 
   createPep(x: number, y: number): Pep {
@@ -64,23 +109,8 @@ export class EntityManager {
       bee.update(deltaTime);
     }
 
-    // Check collisions
-    this.checkCollisions();
-  }
-
-  private checkCollisions() {
-    if (!this.pep || this.pep.isHit()) return;
-
-    // Check if any bee hit pep
-    for (const bee of this.bees) {
-      if (bee.isCollidingWith(this.pep)) {
-        this.pep.onHit();
-        return;
-      }
-    }
-
     // Check if pep fell off screen
-    if (this.pep.getY() > this.config.gameHeight + 50) {
+    if (this.pep && !this.pep.isHit() && this.pep.getY() > this.config.gameHeight + 50) {
       this.pep.onHit();
     }
   }
