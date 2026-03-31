@@ -1,5 +1,5 @@
 import Matter from 'matter-js';
-import { PhysicsEngine } from '../core/PhysicsEngine';
+import { PhysicsEngine, CollisionCategory } from '../core/PhysicsEngine';
 import { GameConfig } from '../core/GameConfig';
 
 export class Pep {
@@ -13,6 +13,11 @@ export class Pep {
       friction: 0.5,
       restitution: 0.3,
       density: 0.003,
+      // Set collision filter so pep can be hit by bees
+      collisionFilter: {
+        category: CollisionCategory.PEP,
+        mask: CollisionCategory.DEFAULT | CollisionCategory.LINE | CollisionCategory.BEE
+      },
       render: {
         fillStyle: '#FFD700'
       }

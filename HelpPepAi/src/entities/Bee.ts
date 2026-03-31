@@ -1,5 +1,5 @@
 import Matter from 'matter-js';
-import { PhysicsEngine } from '../core/PhysicsEngine';
+import { PhysicsEngine, CollisionCategory } from '../core/PhysicsEngine';
 import { GameConfig } from '../core/GameConfig';
 import { Pep } from './Pep';
 
@@ -38,12 +38,17 @@ export class Bee {
       restitution: 0.5,
       density: 0.001,
       frictionAir: 0.05,
+      // IMPORTANT: Set collision filter so bee collides with lines
+      collisionFilter: {
+        category: CollisionCategory.BEE,
+        mask: CollisionCategory.DEFAULT | CollisionCategory.LINE | CollisionCategory.PEP
+      },
       render: {
         fillStyle: '#FFD700'
       }
     });
 
-    // Make bee not affected by gravity
+    // Make bee not affected by gravity (bees fly!)
     Matter.Body.set(this.body, 'gravityScale', 0);
   }
 
