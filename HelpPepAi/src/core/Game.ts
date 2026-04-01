@@ -189,8 +189,9 @@ export class Game {
 
   private onLose() {
     this.gameState = 'lose';
-    this.physics.disable();
-    this.loseUI?.classList.remove('hidden');
+    // this.physics.disable();
+    // this.loseUI?.classList.remove('hidden');
+    // TODO: Temporarily disabled for debugging
   }
 
   private render() {

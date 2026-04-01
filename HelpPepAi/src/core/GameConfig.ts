@@ -56,19 +56,23 @@ export class GameConfig {
 
   // Line physics settings
   get lineThickness(): number {
-    return 8;
+    return 12; // Increased thickness for better collision detection
   }
 
   get lineDensity(): number {
-    return 0.01;
+    return 0.5; // Increased from 0.01 - lines need mass to collide properly
   }
 
   get lineFriction(): number {
-    return 0.5;
+    return 0.8;
   }
 
   get lineRestitution(): number {
-    return 0.3;
+    return 0.1; // Low bounce to prevent jittering
+  }
+
+  get lineSlop(): number {
+    return 0.05; // Collision tolerance to prevent jittering
   }
 
   // Bee settings

@@ -24,12 +24,15 @@ export class EntityManager {
   }
 
   private setupCollisionHandlers() {
+    console.log('🔧 Setting up collision handlers...');
     Matter.Events.on(this.physics.getEngine(), 'collisionStart', (event) => {
       const pairs = event.pairs;
+      console.log(`💥 Collision event: ${pairs.length} pairs`);
 
       for (const pair of pairs) {
         const bodyA = pair.bodyA;
         const bodyB = pair.bodyB;
+        console.log(`  Checking: ${bodyA.label} vs ${bodyB.label}`);
 
         // Check for bee-line collision
         this.handleBeeLineCollision(bodyA, bodyB);
@@ -46,6 +49,7 @@ export class EntityManager {
     const lineBody = bodyA.label === 'line' ? bodyA : (bodyB.label === 'line' ? bodyB : null);
 
     if (beeBody && lineBody) {
+      console.log('🐝 Bee-Line collision detected!');
       // Find the bee instance and trigger retreat
       const bee = this.bees.find(b => b.getBody() === beeBody);
       if (bee) {

@@ -2,12 +2,8 @@ import Matter from 'matter-js';
 import { PhysicsEngine } from './PhysicsEngine';
 import { GameConfig } from './GameConfig';
 
-interface LineSegment {
+interface DrawnLine {
   body: Matter.Body;
-  startX: number;
-  startY: number;
-  endX: number;
-  endY: number;
 }
 
 export class LineDrawer {
@@ -17,7 +13,7 @@ export class LineDrawer {
 
   private isDrawing: boolean = false;
   private currentPoints: { x: number; y: number }[] = [];
-  private lines: LineSegment[] = [];
+  private drawnLines: DrawnLine[] = [];
 
   // Drawing settings
   private minPointDistance: number = 5;
@@ -128,21 +124,47 @@ export class LineDrawer {
       return;
     }
 
-    // Create physics bodies for each line segment
+    // Create a single rigid body with all line segments as parts
+    const thickness = this.config.lineThickness;
+    const parts: Matter.Body[] = [];
+
     for (let i = 0; i < this.currentPoints.length - 1; i++) {
       const p1 = this.currentPoints[i];
       const p2 = this.currentPoints[i + 1];
 
-      const body = this.physics.createLineBody(p1.x, p1.y, p2.x, p2.y);
-      this.lines.push({
-        body,
-        startX: p1.x,
-        startY: p1.y,
-        endX: p2.x,
-        endY: p2.y
+      const dx = p2.x - p1.x;
+      const dy = p2.y - p1.y;
+      const length = Math.sqrt(dx * dx + dy * dy);
+      const angle = Math.atan2(dy, dx);
+      const centerX = (p1.x + p2.x) / 2;
+      const centerY = (p1.y + p2.y) / 2;
+
+      // Create a segment as a part with collision filter
+      const part = Matter.Bodies.rectangle(centerX, centerY, length, thickness, {
+        angle: angle,
+        isStatic: false,
+        collisionFilter: {
+          category: 0x0004, // CollisionCategory.LINE
+          mask: 0x0001 | 0x0002 | 0x0008 // DEFAULT | BEE | PEP
+        }
       });
+      parts.push(part);
     }
 
+    // Create a single body from all parts
+    const compoundBody = Matter.Body.create({
+      parts: parts,
+      friction: this.config.lineFriction,
+      restitution: this.config.lineRestitution,
+      density: this.config.lineDensity,
+      slop: this.config.lineSlop,
+      label: 'line'
+    });
+
+    // Add to world
+    Matter.World.add(this.physics.getWorld(), compoundBody);
+
+    this.drawnLines.push({ body: compoundBody });
     this.currentPoints = [];
 
     // Notify that drawing is complete
@@ -153,16 +175,24 @@ export class LineDrawer {
 
   render(ctx: CanvasRenderingContext2D) {
     // Draw completed lines
-    ctx.strokeStyle = this.lineColor;
-    ctx.lineWidth = this.config.lineThickness;
+    ctx.fillStyle = this.lineColor;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
-    for (const line of this.lines) {
-      ctx.beginPath();
-      ctx.moveTo(line.startX, line.startY);
-      ctx.lineTo(line.endX, line.endY);
-      ctx.stroke();
+    for (const drawnLine of this.drawnLines) {
+      const body = drawnLine.body;
+      // Render all parts of the compound body
+      for (const part of body.parts) {
+        if (part === body) continue; // Skip the parent body
+        const vertices = part.vertices;
+        ctx.beginPath();
+        ctx.moveTo(vertices[0].x, vertices[0].y);
+        for (let j = 1; j < vertices.length; j++) {
+          ctx.lineTo(vertices[j].x, vertices[j].y);
+        }
+        ctx.closePath();
+        ctx.fill();
+      }
     }
 
     // Draw current drawing line
@@ -181,8 +211,10 @@ export class LineDrawer {
   }
 
   clear() {
-    this.physics.clearLines();
-    this.lines = [];
+    for (const drawnLine of this.drawnLines) {
+      Matter.World.remove(this.physics.getWorld(), drawnLine.body);
+    }
+    this.drawnLines = [];
     this.currentPoints = [];
     this.isDrawing = false;
   }

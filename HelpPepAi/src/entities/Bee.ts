@@ -48,6 +48,12 @@ export class Bee {
       }
     });
 
+    console.log(`🐝 Created bee body:`, {
+      position: { x, y },
+      radius: this.radius,
+      collisionFilter: this.body.collisionFilter
+    });
+
     // Make bee not affected by gravity (bees fly!)
     Matter.Body.set(this.body, 'gravityScale', 0);
   }

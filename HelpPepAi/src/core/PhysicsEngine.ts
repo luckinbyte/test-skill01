@@ -99,6 +99,15 @@ export class PhysicsEngine {
       }
     });
 
+    console.log(`📏 Created line body:`, {
+      position: { x: centerX, y: centerY },
+      length,
+      thickness,
+      angle,
+      density: this.config.lineDensity,
+      collisionFilter: body.collisionFilter
+    });
+
     this.lineBodies.push(body);
     this.addBody(body);
     return body;
